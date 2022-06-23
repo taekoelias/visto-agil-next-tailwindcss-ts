@@ -7,7 +7,7 @@ const Dashboard = () => {
     <AdminLayout>
       <Card>
         <CardHeader>
-          <h1 className="text-xl font-medium">Dashbord</h1>
+          <h1 className="text-xl font-medium">Dashboard</h1>
         </CardHeader>
         <CardBody>
           <p>Conteudo</p>

@@ -31,7 +31,7 @@ export const AdminHeader = ({sidebarExpanded, toggleSidebarExpanded} : AdminHead
                 className='absolute left-1/2 -translate-x-1/2 py-2 inline-block mr-4 text-xl leading-4 whitespace-nowrap cursor-pointer bg-transparent'>
                 <Stack className='w-7 h-8 align-sub inline' />
                 <h2 className={`${!sidebarExpanded && '' } text-slate-800 text-2xl leading-5 tracking-wider font-medium pl-2 mb-2 inline animate-brandTextAnimation`}>
-                  Visto Ágil
+                  VistoAgil
                 </h2>
               </a>
             </li>
