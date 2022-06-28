@@ -3,6 +3,11 @@ import { Page } from "../models/page.model";
 import { Pagination } from "../models/pagination.model";
 import { api, apiList } from "./axios";
 
+export interface ServiceOptions {
+    page?: Page, 
+    query?: string
+}
+
 export abstract class BaseService<T extends BaseModel> {
     
   resourceUrl : string;
@@ -13,11 +18,23 @@ export abstract class BaseService<T extends BaseModel> {
   
   abstract sortFN(t1 :T, t2: T) : number
 
-  getAll = async (options?: {page?: Page, query?: string}): Promise<T[]> => {
+  private buildParams = (options? : ServiceOptions) => {
+    let params = {};
+    if (options?.page) {
+        params = {...params, ...options.page}
+    }
+    if (options?.query) {
+        params = {...params,query: options.query}
+    }
+    return params;
+  }
+
+  getAll = async (options?: ServiceOptions): Promise<T[]> => {
+
     const response = await apiList.get<T[]>(
         this.resourceUrl, 
         {
-          params: options ? {...options?.page,query: options?.query} : {}
+          params: this.buildParams(options),
         })
     if (response?.data && this.sortFN)
         return response.data.sort(this.sortFN)
@@ -25,11 +42,11 @@ export abstract class BaseService<T extends BaseModel> {
     return response.data
   }
 
-  getAllPage = async (options?: {page?: Page, query?: string}): Promise<Pagination<T>> => {
+  getAllPage = async (options?: ServiceOptions): Promise<Pagination<T>> => {
     const response = await apiList.get<Pagination<T>>(
         this.resourceUrl, 
         {
-            params: options ? {...options?.page,query: options?.query} : {}
+            params: this.buildParams(options)
         })
     return response.data
   }

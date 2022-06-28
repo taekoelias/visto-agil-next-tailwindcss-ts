@@ -1,7 +1,6 @@
-import React, { useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
+import React, { useState } from 'react'
 import { Button } from '../elements/Button'
-import Box from '../elements/Box'
 
 export interface ModalProps {
   trigger: React.ReactNode

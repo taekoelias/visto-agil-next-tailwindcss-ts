@@ -23,5 +23,15 @@ const apiPage = axios.create({
         "Content-type": "application/json",
       },
 })
+/*
+apiList.interceptors.request.use(request => {
+  console.log(`Request [${request.method}]: ${request.baseURL}${request.url} | params - ${JSON.stringify(request.params)}`)
+  return request
+})
 
+apiList.interceptors.response.use(response => {
+  console.log(`Response [${response.config.method}]: ${response.status} | ${response.config.baseURL}${response.config.url} | data - ${JSON.stringify(response.data)}`)
+  return response
+})
+*/
 export { api, apiPage, apiList };

@@ -3,10 +3,11 @@ import type { AppProps } from 'next/app';
 import { QueryClientProvider } from 'react-query';
 import { ReactQueryDevtools } from "react-query/devtools";
 import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import '../app/common/libs/axios';
 import { queryClient } from '../app/common/libs/query';
+
+import 'react-toastify/dist/ReactToastify.css';
 import '../styles/globals.css';
+import axios from 'axios';
 
 const toastOptions = {
   autoClose: 5000,
@@ -20,7 +21,15 @@ const toastOptions = {
 }
 
 function MyApp({ Component, pageProps: {session, ...pageProps} }: AppProps) {
-
+  axios.interceptors.request.use(request => {
+    console.log('Starting Request', JSON.stringify(request, null, 2))
+    return request
+  })
+  
+  axios.interceptors.response.use(response => {
+    console.log('Response:', JSON.stringify(response, null, 2))
+    return response
+  })
   return (
     <QueryClientProvider client={queryClient}>
       <ToastContainer {...toastOptions}/>

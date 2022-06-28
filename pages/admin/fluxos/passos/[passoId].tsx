@@ -23,8 +23,34 @@ interface ItensPassoProps {
   passo: Passo
 }
 
+const tipos = [
+  {key: TipoItem.TEXT, value: TipoItem.TEXT, text: "Texto"},
+  {key: TipoItem.INPUT, value: TipoItem.INPUT, text: "Campo de texto"},
+  {key: TipoItem.IMAGE, value: TipoItem.IMAGE, text: "Imagem"},
+  {key: TipoItem.LINK, value: TipoItem.LINK, text: "Link"},
+  {key: TipoItem.VIDEO, value: TipoItem.VIDEO, text: "Video"}
+] as ItemSelect<TipoItem>[];
+
 const ItensPasso = ({passo}: ItensPassoProps) => {
-  if (!passo?.nome) return null;
+  
+  const [numOrdem,setNumOrdem] = useState(1);
+  const [passoView, setPassoView] = useState(passo);
+  const [upload, setUpload] = useState<UploadedImage>();
+  
+  const query = new ItemPassoQuery();
+  const service = new ItemPassoService();
+  const passoService = new PassoService();
+  
+  useEffect(()=>{
+    itensPasso ?
+      setNumOrdem(itensPasso.length)
+      :
+      setNumOrdem(0)
+  },[])
+  
+  const {isLoading, data: itensPasso, refetch, isFetching} = query.useQueryAll({query: `passo.id:${passo?.id}`});
+  const {mutate: onCreateOrUpdate} = query.createOrUpdate();
+  const {mutate: onDelete} = query.remove();
 
   const newItemPasso = {
     id: 0,
@@ -35,34 +61,53 @@ const ItensPasso = ({passo}: ItensPassoProps) => {
     ordem: 0
   };
 
-  const tipos = [
-    {key: TipoItem.TEXT, value: TipoItem.TEXT, text: "Texto"},
-    {key: TipoItem.INPUT, value: TipoItem.INPUT, text: "Campo de texto"},
-    {key: TipoItem.IMAGE, value: TipoItem.IMAGE, text: "Imagem"},
-    {key: TipoItem.LINK, value: TipoItem.LINK, text: "Link"},
-    {key: TipoItem.VIDEO, value: TipoItem.VIDEO, text: "Video"}
-  ] as ItemSelect<TipoItem>[];
-  
-  const query = new ItemPassoQuery();
-  const service = new ItemPassoService();
-  const passoService = new PassoService();
+  const {
+    handleSubmit,
+    handleChange,
+    data,
+    setData,
+    errors
+  } = useForm<ItemPasso>({
+    initialValues: newItemPasso,
+    validations: {
+      label: {
+        required: {
+          value: true,
+          message: 'Informe um nome para o item'
+        }
+      },
+      tipo: {
+        required: {
+          value: true,
+          message: 'Informe um tipo para o item'
+        }
+      }
+    },
+    onSubmit: () => {
+      let itemPasso = data
+      if (itemPasso.id === 0){
+        itemPasso = {...data, ordem: numOrdem+1}
+        setNumOrdem(numOrdem+1)
+      }
 
-  const {isLoading, data: itensPasso, refetch, isFetching} = query.useQueryAll({query: `passo.id:${passo?.id}`});
-  const {mutate: onCreateOrUpdate} = query.createOrUpdate();
-  const {mutate: onDelete} = query.remove();
-  
-  const [numOrdem,setNumOrdem] = useState(1);
+      if (data.tipo === TipoItem.IMAGE){
+        itemPasso = {...itemPasso, conteudo: (upload?.base64||'')}
+      }
 
-  const [passoView, setPassoView] = useState(passo);
-
-  const [upload, setUpload] = useState<UploadedImage>();
-
-  useEffect(()=>{
-    itensPasso ?
-      setNumOrdem(itensPasso.length)
-      :
-      setNumOrdem(0)
-  },[isLoading, isFetching])
+      onCreateOrUpdate(itemPasso,{
+        onSuccess: (itemPasso) => {
+          refetch().then(data => {
+            setData(newItemPasso)
+            Notification.Success("Item cadastrado com sucesso.");
+          })
+        },
+        onError: (error) => {
+          Notification.Error("Ocorreu um erro ao cadastrar o item.");
+          Notification.Error(error.message)
+        }
+      })
+    }
+  })
 
   const onLabelChange = async (newLabel: string) => {
     try {
@@ -74,53 +119,6 @@ const ItensPasso = ({passo}: ItensPassoProps) => {
       Notification.Error(`${e}`)
     }
   }
-
-  const {
-    handleSubmit,
-    handleChange,
-    data,
-    setData,
-    errors
-  } = useForm<ItemPasso>({
-      initialValues: newItemPasso,
-      validations: {
-        label: {
-          required: {
-            value: true,
-            message: 'Informe um nome para o item'
-          }
-        },
-        tipo: {
-          required: {
-            value: true,
-            message: 'Informe um tipo para o item'
-          }
-        }
-      },
-      onSubmit: () => {
-        let itemPasso = data
-        if (itemPasso.id === 0){
-          itemPasso = {...data, ordem: numOrdem+1}
-        }
-
-        if (data.tipo === TipoItem.IMAGE){
-          itemPasso = {...itemPasso, conteudo: (upload?.base64||'')}
-        }
-
-        onCreateOrUpdate(itemPasso,{
-          onSuccess: (itemPasso) => {
-            refetch().then(data => {
-              setData(newItemPasso)
-              Notification.Success("Item cadastrado com sucesso.");
-            })
-          },
-          onError: (error) => {
-            Notification.Error("Ocorreu um erro ao cadastrar o item.");
-            Notification.Error(error.message)
-          }
-        })
-      }
-    })
 
   const onImageUploaded = (image: UploadedImage|undefined) => {
     setUpload(image)

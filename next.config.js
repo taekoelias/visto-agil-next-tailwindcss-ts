@@ -4,6 +4,7 @@ const nextConfig = {
   publicRuntimeConfig: {
     backendUrl: process.env.API_BASE_URL,
   },
+  output: "standalone",
 };
 
 module.exports = nextConfig;

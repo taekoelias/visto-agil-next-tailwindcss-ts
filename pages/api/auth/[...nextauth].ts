@@ -1,6 +1,8 @@
 import { NextAuthOptions } from "next-auth";
 import NextAuth from "next-auth/next";
 import GoogleProvider from "next-auth/providers/google";
+import { UsuarioService } from "../../../app/modules/admin/services/usuario.service";
+
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -20,8 +22,14 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
   },
   callbacks:{
-    signIn: async ({account, profile}) => {
-      return true;
+    signIn: async ({user}) => {
+      const service = new UsuarioService();
+      const users = await service.getAll({
+        query: `email:'${user.email}'`
+      })
+      console.log("usuarios",users);
+      
+      return users && users.length === 1 && users[0].email === user.email;
     },
     redirect:async ({baseUrl,url}) => {
       return '/admin'

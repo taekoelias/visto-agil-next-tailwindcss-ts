@@ -1,4 +1,5 @@
 import { GetServerSideProps } from 'next';
+import Image from 'next/image';
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import { Card, CardBody, CardHeader } from '../../../../../app/common/components/containers/Card';
 import { Modal } from '../../../../../app/common/components/containers/Modal';
@@ -28,27 +29,28 @@ interface PreenchimentoEtapaProps {
   respostas: RespostaItem[];
 }
 
+const service = new RespostaItemService();
+
 const PreenchimentoEtapa = ({processo, etapa, passos, itens, respostas} : PreenchimentoEtapaProps) => {
   
-  const service = new RespostaItemService();
-
   const [step, setStep] = useState<number>(1);
   const [passoAtual,setPassoAtual] = useState<Passo>(passos[0]);
   const [formAtual,setFormAtual] = useState<RespostaItem[]>([]);
+  
+  useEffect(()=>{
+    setPassoAtual(passos[step-1])
+  },[step])
+
+  useEffect(()=>{
+    setFormAtual(respostas?.filter(subitem=>subitem.passo.id === passoAtual.id))
+  },[passoAtual])
 
   useEffect(() => {
     setStep(1)
     setPassoAtual(passos[step-1])
     setFormAtual(respostas?.filter(subitem=>subitem.passo.id === passoAtual.id))
   },[passos])
-
-  useEffect(()=>{
-    setFormAtual(respostas?.filter(subitem=>subitem.passo.id === passoAtual.id))
-  },[passoAtual])
-
-  useEffect(()=>{
-    setPassoAtual(passos[step-1])
-  },[step])
+  
 
   const savePassoAtual = () => {
     formAtual.forEach( async (resposta) => {
@@ -159,7 +161,7 @@ const PreenchimentoEtapa = ({processo, etapa, passos, itens, respostas} : Preenc
                           title={resposta.item.label} 
                           trigger={
                             <div className='relative h-60 w-60 p-4 border'>
-                                <img 
+                                <img
                                   className='absolute m-0 top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%]' 
                                   src={resposta.item.conteudo}
                                   alt={resposta.item.label} 
@@ -167,7 +169,10 @@ const PreenchimentoEtapa = ({processo, etapa, passos, itens, respostas} : Preenc
                             </div>
                           }>
                           <img 
-                            src={resposta.item.conteudo}/>
+                            src={resposta.item.conteudo}
+                            alt={resposta.item.label} 
+                            title={resposta.item.label} 
+                            />
                         </Modal>
                       </>
                     )

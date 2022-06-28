@@ -20,72 +20,21 @@ interface PassosEtapaProps {
   etapa: Etapa
 }
 
+const itemDefault = {
+  key: 0, text: '-- SELECIONE --', value: 0, disabled: true
+}
+
+const query = new PassoEtapaQuery();
+const passoService= new PassoService();
+const service = new PassoEtapaService();
+const etapaService = new EtapaService();
+
 const PassosEtapa = ({etapa}: PassosEtapaProps) => {
-  if (!etapa?.nome) return null;
-
-  const newPassoEtapa = {
-    id: 0, etapa, ordem: 0, passo: {id: 0, nome: ''}, passoId: 0
-  };
-
-  const itemDefault = {
-    key: 0, text: '-- SELECIONE --', value: 0, disabled: true
-  }
-
-  const query = new PassoEtapaQuery();
-  const passoService= new PassoService();
-  const service = new PassoEtapaService();
-  const etapaService = new EtapaService();
-
+  
   const [etapaView,setEtapaView] = useState(etapa)
   const [numOrdem,setNumOrdem] = useState(1);
-
-  const {isLoading, data: passosEtapa, refetch, isFetching} = query.useQueryAll({query: `etapa.id:${etapa?.id}`});
-  const {mutate: onCreateOrUpdate} = query.createOrUpdate();
-  const {mutate: onDelete} = query.remove();
-
   const [passos,setPassos] = useState<ItemSelect<number>[]>([])
-
-  const isSelected = (value: string) : boolean => {
-    return Number(value) > 0;
-  }
-
-  const {
-    handleSubmit,
-    handleChange,
-    data,
-    setData,
-    errors
-  } = useForm<PassoEtapa>({
-      initialValues: newPassoEtapa,
-      validations: {
-        passoId: {
-          custom: {
-            isValid: isSelected,
-            message: "Selecione um passo."
-          }
-        },
-      },
-      onSubmit: () => {
-        let passoEtapa = {...data, passo: {id: data.passoId, nome: ''}}
-        if (passoEtapa.id === 0){
-          passoEtapa = {...passoEtapa, ordem: numOrdem+1}
-        }
-
-        onCreateOrUpdate(passoEtapa,{
-          onSuccess: (passoEtapa) => {
-            refetch().then(data => {
-              setData(newPassoEtapa)
-            })
-            Notification.Success('Passo associado a etapa com sucesso')
-          },
-          onError: (error) => {
-            Notification.Error('Ocorreu um erro ao remover a associação do passo a etapa');
-            Notification.Error(`${error}`)
-          }
-        })
-      }
-    })
-
+  
   useEffect(()=>{
     passoService.getAll().then(data=>{
       if (data){
@@ -103,13 +52,61 @@ const PassosEtapa = ({etapa}: PassosEtapaProps) => {
       }
     })
   },[])
-
+  
+  const {isLoading, data: passosEtapa, refetch, isFetching} = query.useQueryAll({query: `etapa.id:${etapa?.id}`});
+  const {mutate: onCreateOrUpdate} = query.createOrUpdate();
+  const {mutate: onDelete} = query.remove();
+  
   useEffect(()=>{
     passosEtapa ?
       setNumOrdem(passosEtapa.length)
       :
       setNumOrdem(0)
-  },[isFetching])
+  },[passosEtapa])
+
+  const newPassoEtapa = {
+    id: 0, etapa, ordem: 0, passo: {id: 0, nome: ''}, passoId: 0
+  };
+
+  const {
+    handleSubmit,
+    handleChange,
+    data,
+    setData,
+    errors
+  } = useForm<PassoEtapa>({
+    initialValues: newPassoEtapa,
+    validations: {
+      passoId: {
+        custom: {
+          isValid: (value: string) => {
+            return Number(value) > 0;
+          },
+          message: "Selecione um passo."
+        }
+      },
+    },
+    onSubmit: () => {
+      let passoEtapa = {...data, passo: {id: data.passoId, nome: ''}}
+      if (passoEtapa.id === 0){
+        passoEtapa = {...passoEtapa, ordem: numOrdem+1}
+        setNumOrdem(numOrdem+1)
+      }
+
+      onCreateOrUpdate(passoEtapa,{
+        onSuccess: (passoEtapa) => {
+          refetch().then(data => {
+            setData(newPassoEtapa)
+          })
+          Notification.Success('Passo associado a etapa com sucesso')
+        },
+        onError: (error) => {
+          Notification.Error('Ocorreu um erro ao remover a associação do passo a etapa');
+          Notification.Error(`${error}`)
+        }
+      })
+    }
+  })
 
   const onLabelChange = async (newLabel: string) => {
     try {

@@ -20,71 +20,28 @@ interface EtapasProcessoProps {
   processo: Processo
 }
 
+const query = new EtapaProcessoQuery();
+const etapaService= new EtapaService();
+const service = new EtapaProcessoService();
+const processoService = new ProcessoService();
+
+const itemDefault = {
+  key: 0, text: '-- SELECIONE --', value: 0, disabled: true
+}
+
 const EtapasProcesso = ({processo}: EtapasProcessoProps) => {
-  if (!processo?.nome) return null;
 
   const newEtapaProcesso = {
     id: 0, processo, ordem: 0, etapa: {id: 0, nome: ''}, etapaId: 0
   };
 
-  const itemDefault = {
-    key: 0, text: '-- SELECIONE --', value: 0, disabled: true
-  }
-
-  const query = new EtapaProcessoQuery();
-  const etapaService= new EtapaService();
-  const service = new EtapaProcessoService();
-  const processoService = new ProcessoService();
-
   const [processoView,setProcessoView] = useState(processo)
   const [numOrdem,setNumOrdem] = useState(1);
+  const [etapas,setEtapas] = useState<ItemSelect<number>[]>([])
 
   const {isLoading, data: etapasProcesso, refetch, isFetching} = query.useQueryAll({query: `processo.id:${processo?.id}`});
   const {mutate: onCreateOrUpdate} = query.createOrUpdate();
   const {mutate: onDelete} = query.remove();
-
-  const [etapas,setEtapas] = useState<ItemSelect<number>[]>([])
-
-  const isSelected = (value: string) : boolean => {
-    return Number(value) > 0;
-  }
-
-  const {
-    handleSubmit,
-    handleChange,
-    data,
-    setData,
-    errors
-  } = useForm<EtapaProcesso>({
-      initialValues: newEtapaProcesso,
-      validations: {
-        etapaId: {
-          custom: {
-            isValid: isSelected,
-            message: "Selecione uma etapa."
-          }
-        },
-      },
-      onSubmit: () => {
-        let etapaProcesso = {...data, etapa: {id: data.etapaId, nome: ''}}
-        if (etapaProcesso.id === 0){
-          etapaProcesso = {...etapaProcesso, ordem: numOrdem+1}
-        }
-
-        onCreateOrUpdate(etapaProcesso,{
-          onSuccess: () => {
-            refetch().then(() => {
-              setData(newEtapaProcesso)
-              Notification.Success("Etapa associada ao processo com sucesso.");
-            })
-          },
-          onError: (error) => {
-            Notification.Error("Ocorreu um erro ao associar a etapa ao processo.");
-            Notification.Error(error.message)
-          }
-        })
-      }
-    })
 
   useEffect(()=>{
     etapaService.getAll().then(data=>{
@@ -110,7 +67,47 @@ const EtapasProcesso = ({processo}: EtapasProcessoProps) => {
       :
       setNumOrdem(0);
 
-  },[isLoading, isFetching])
+  },[etapasProcesso])
+
+  const {
+    handleSubmit,
+    handleChange,
+    data,
+    setData,
+    errors
+  } = useForm<EtapaProcesso>({
+    initialValues: newEtapaProcesso,
+    validations: {
+      etapaId: {
+        custom: {
+          isValid: (value: string) => {
+            return Number(value) > 0;
+          },
+          message: "Selecione uma etapa."
+        }
+      },
+    },
+    onSubmit: () => {
+      let etapaProcesso = {...data, etapa: {id: data.etapaId, nome: ''}}
+      if (etapaProcesso.id === 0){
+        etapaProcesso = {...etapaProcesso, ordem: numOrdem+1}
+        setNumOrdem(numOrdem+1);
+      }
+
+      onCreateOrUpdate(etapaProcesso,{
+        onSuccess: () => {
+          refetch().then(() => {
+            setData(newEtapaProcesso)
+            Notification.Success("Etapa associada ao processo com sucesso.");
+          })
+        },
+        onError: (error) => {
+          Notification.Error("Ocorreu um erro ao associar a etapa ao processo.");
+          Notification.Error(error.message)
+        }
+      })
+    }
+  })
 
   const onLabelChange = async (newLabel: string) => {
     try {
