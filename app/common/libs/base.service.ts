@@ -25,8 +25,12 @@ export abstract class BaseService<T extends BaseModel> {
     return response.data
   }
 
-  getAllPage = async (page?: Page): Promise<Pagination<T>> => {
-    const response = await apiList.get<Pagination<T>>(this.resourceUrl, page ? {params: page} : {})
+  getAllPage = async (options?: {page?: Page, query?: string}): Promise<Pagination<T>> => {
+    const response = await apiList.get<Pagination<T>>(
+        this.resourceUrl, 
+        {
+            params: options ? {...options?.page,query: options?.query} : {}
+        })
     return response.data
   }
   

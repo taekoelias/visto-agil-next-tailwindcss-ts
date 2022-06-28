@@ -1,26 +1,32 @@
-import '../styles/globals.css'
-import 'react-toastify/dist/ReactToastify.css';
-import type { AppProps } from 'next/app'
+import { SessionProvider } from 'next-auth/react';
+import type { AppProps } from 'next/app';
 import { QueryClientProvider } from 'react-query';
 import { ReactQueryDevtools } from "react-query/devtools";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import '../app/common/libs/axios';
 import { queryClient } from '../app/common/libs/query';
-import { ToastContainer } from 'react-toastify'
+import '../styles/globals.css';
 
-function MyApp({ Component, pageProps }: AppProps) {
+const toastOptions = {
+  autoClose: 5000,
+  hideProgressBar: false,
+  newestOnTop: false,
+  closeOnClick: true,
+  rtl: false,
+  pauseOnFocusLoss: true,
+  draggable: true,
+  pauseOnHover: true
+}
+
+function MyApp({ Component, pageProps: {session, ...pageProps} }: AppProps) {
+
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastContainer 
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
-      <Component {...pageProps} />
+      <ToastContainer {...toastOptions}/>
+      <SessionProvider session={session}>
+        <Component {...pageProps} />
+      </SessionProvider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   )

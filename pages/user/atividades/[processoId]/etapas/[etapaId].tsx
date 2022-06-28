@@ -30,6 +30,8 @@ interface PreenchimentoEtapaProps {
 
 const PreenchimentoEtapa = ({processo, etapa, passos, itens, respostas} : PreenchimentoEtapaProps) => {
   
+  const service = new RespostaItemService();
+
   const [step, setStep] = useState<number>(1);
   const [passoAtual,setPassoAtual] = useState<Passo>(passos[0]);
   const [formAtual,setFormAtual] = useState<RespostaItem[]>([]);
@@ -48,14 +50,37 @@ const PreenchimentoEtapa = ({processo, etapa, passos, itens, respostas} : Preenc
     setPassoAtual(passos[step-1])
   },[step])
 
+  const savePassoAtual = () => {
+    formAtual.forEach( async (resposta) => {
+      let respostaAtual: RespostaItem;
+      if (resposta.id === 0){
+        respostaAtual = await service.create(resposta);
+      } else {
+        respostaAtual = await service.update(resposta);
+      }
+
+      const index = respostas.findIndex(resp => resp.passo.id === respostaAtual.passo.id 
+        && resp.etapa.id === respostaAtual.etapa.id
+        && resp.processo.id === respostaAtual.processo.id
+        && resp.item.id === respostaAtual.item.id
+        );
+
+      if (index >= 0) {
+        respostas[index] = respostaAtual;
+      }
+    })
+  }
+
   const next = () => {
     if (step<passos.length){
+      savePassoAtual();
       setStep(step+1);
     }
   }
 
   const previous = () => {
     if (step>1){
+      savePassoAtual();
       setStep(step-1)
     }
   }
@@ -184,11 +209,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const { processoId, etapaId } = context.query
   
   const service = new EtapaProcessoService();
-  const etapasProcesso = await service.getAll({query: `processo.id:${processoId};etapa.id:${etapaId}`})
+  const etapasProcesso = await service.getAll({query: `processo.id : ${processoId} and etapa.id : ${etapaId}`})
   if (etapasProcesso){
     const etapaProcesso = etapasProcesso[0];
     const passoEtapaService = new PassoEtapaService();
-    const passosEtapa = await passoEtapaService.getAll({query: `etapa.id:${etapaId}`})
+    const passosEtapa = await passoEtapaService.getAll({query: `etapa.id : ${etapaId}`})
     
     let passos : Passo[] = [];
     let itens : ItemPasso[] = [];

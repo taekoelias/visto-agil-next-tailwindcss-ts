@@ -1,4 +1,6 @@
-import { Bell, CornersOut, DotsThreeVertical, EnvelopeSimple, List, Stack, User } from 'phosphor-react'
+import { Popover, Transition } from '@headlessui/react';
+import { useSession, signOut } from 'next-auth/react';
+import { Bell, CornersOut, DotsThreeVertical, EnvelopeSimple, List, Power, Stack, User } from 'phosphor-react'
 import React, { useState } from 'react'
 import InputSearch from './InputSearch'
 
@@ -9,6 +11,8 @@ export interface AdminHeaderProps {
 
 export const AdminHeader = ({sidebarExpanded, toggleSidebarExpanded} : AdminHeaderProps) => {
   
+  const {data, status} = useSession();
+
   const [navbarExpanded,setNavbarExpanded] = useState(false);
 
   function toggleNavbarExpanded(){
@@ -90,13 +94,41 @@ export const AdminHeader = ({sidebarExpanded, toggleSidebarExpanded} : AdminHead
                   <EnvelopeSimple className='mr-1 text-lg self-center md:text-white' />
                 </a>
               </li>
-              <li className='float-left ml-0 leading-4 relative'>
-                <a className='py-3 px-2.5 text-slate-800 block leading-4 bg-transparent cursor-pointer md:px-2'>
-                  <span className='mr-2 p-1 relative inline-block w-8 whitespace-nowrap rounded-full align-bottom text-slate-800 bg-zinc-400 md:bg-zinc-200'>
-                    <User className='h-full w-full text-zinc-100 self-center md:text-zinc-600' />
-                  </span>
-                </a>
-              </li>
+              <Popover as='li' className='float-left ml-0 leading-4 relative'>
+                <Popover.Button 
+                  as='a'
+                  className='py-3 px-2.5 text-slate-800 block leading-4 bg-transparent cursor-pointer md:px-2'>
+                      {
+                        data?.user?.image
+                        ?
+                        <img className='w-8 h-8 rounded-full object-cover' src={data?.user?.image as string} alt="" />
+                        :
+                        <span className='mr-2 p-1 relative inline-block w-8 max-h-8 whitespace-nowrap rounded-full align-bottom text-slate-800 bg-zinc-400 md:bg-zinc-200'>
+                          <User className='h-full w-full text-zinc-100 self-center md:text-zinc-600' />
+                        </span>
+                      }
+                </Popover.Button>
+                <Transition
+                  enter="transition duration-100 ease-out"
+                  enterFrom="transform scale-95 opacity-0"
+                  enterTo="transform scale-100 opacity-100"
+                  leave="transition duration-75 ease-out"
+                  leaveFrom="transform scale-100 opacity-100"
+                  leaveTo="transform scale-95 opacity-0"
+                >
+                  <Popover.Panel className='absolute block right-0 z-10 w-40 h-fit mt-1 p-2 bg-white border rounded-b shadow-md'>
+                    <span className='text-sm'>
+                      {data?.user?.name}
+                    </span>
+                    <a className='flex items-center gap-2 pt-2 border-t-2' 
+                      href='#'
+                      onClick={() => signOut()}>
+                        <Power size={24}/>
+                        <span className=''>Logout</span>
+                    </a>
+                  </Popover.Panel>
+                </Transition>
+              </Popover>
             </ul>
           </div>
         </div>
@@ -110,11 +142,16 @@ export const AdminHeader = ({sidebarExpanded, toggleSidebarExpanded} : AdminHead
               </li>
             </ul>
             <ul className='flex flex-row flex-wrap rounded float-right my-0 pl-0 list-none'>
-              <li className='leading-4'>
-                <a className='text-white block pt-3 pr-3 pb-3 pl-4 cursor-pointer'>
+              <Popover as='li' className='relative leading-4'>
+                <Popover.Button as='a' 
+                    className='text-white block pt-3 pr-3 pb-3 pl-4 cursor-pointer'>
                   <List className='h-5 w-5 mr-2 self-center' />
-                </a>
-              </li>
+                </Popover.Button>
+
+                <Popover.Panel className='absolute z-10 w-40 bg-white'>
+                  {data?.user?.name}
+                </Popover.Panel>
+              </Popover>
             </ul>
           </div>
         </div>
