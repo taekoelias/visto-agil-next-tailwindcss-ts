@@ -1,0 +1,7 @@
+export * from './etapa-processo.query'
+export * from './etapa.query'
+export * from './item-passo.query'
+export * from './passo-etapa.query'
+export * from './passo.query'
+export * from './processo.query'
+export * from './resposta-item.query'

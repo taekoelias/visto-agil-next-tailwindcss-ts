@@ -7,29 +7,19 @@ import { Button } from "../../../../app/common/components/elements/Button";
 import { EditableLabel } from "../../../../app/common/components/forms/EditableLabel";
 import { InputImage } from "../../../../app/common/components/forms/InputImage";
 import { InputText } from "../../../../app/common/components/forms/InputText";
-import { ItemSelect, SimpleSelect } from "../../../../app/common/components/forms/SimpleSelect";
+import { SimpleSelect } from "../../../../app/common/components/forms/SimpleSelect";
 import { TextArea } from "../../../../app/common/components/forms/TextArea";
 import { useForm } from "../../../../app/common/hooks/UseForm";
 import { Notification } from "../../../../app/common/libs/toast";
 import { UploadedImage } from "../../../../app/common/libs/upload";
 import { AdminLayout } from "../../../../app/modules/admin/layout";
-import { ItemPasso, TipoItem } from "../../../../app/modules/admin/models/item-passo.model";
-import { Passo } from "../../../../app/modules/admin/models/passo.model";
-import { ItemPassoQuery } from "../../../../app/modules/admin/queries/item-passo.query";
-import { ItemPassoService } from "../../../../app/modules/admin/services/item-passo.service";
-import { PassoService } from "../../../../app/modules/admin/services/passo.service";
+import { ItemPasso, TipoItem, Passo } from "../../../../app/modules/admin/models";
+import { ItemPassoQuery } from "../../../../app/modules/admin/queries";
+import { ItemPassoService, PassoService } from "../../../../app/modules/admin/services";
 
 interface ItensPassoProps {
   passo: Passo
 }
-
-const tipos = [
-  {key: TipoItem.TEXT, value: TipoItem.TEXT, text: "Texto"},
-  {key: TipoItem.INPUT, value: TipoItem.INPUT, text: "Campo de texto"},
-  {key: TipoItem.IMAGE, value: TipoItem.IMAGE, text: "Imagem"},
-  {key: TipoItem.LINK, value: TipoItem.LINK, text: "Link"},
-  {key: TipoItem.VIDEO, value: TipoItem.VIDEO, text: "Video"}
-] as ItemSelect<TipoItem>[];
 
 const ItensPasso = ({passo}: ItensPassoProps) => {
   
@@ -181,14 +171,20 @@ const ItensPasso = ({passo}: ItensPassoProps) => {
               errors={errors.label ? [errors.label] : null}
             />
             <SimpleSelect
-              label='Tipo do item'
-              value={data.tipo}
-              items={tipos}
-              onChange={handleChange('tipo')}
-              errors={errors.tipo ? [errors.tipo] : null}
-            />
+                label='Tipo do item'
+                value={data.tipo}
+                onChange={handleChange('tipo')}
+                errors={errors.tipo ? [errors.tipo] : null}>
+              {Object.keys(TipoItem).map((tipo,i) => { 
+                return (
+                  <option key={i} value={tipo} >
+                    {tipo}
+                  </option>
+                )
+              })}
+            </SimpleSelect>
             {
-              [TipoItem.LINK, TipoItem.VIDEO].includes(data.tipo)
+              [TipoItem.LINK, TipoItem.VIDEO, TipoItem.CHECKLIST].includes(data.tipo)
               &&
               <InputText 
                 label='Conteúdo' 

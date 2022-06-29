@@ -5,23 +5,16 @@ import { Card, CardBody, CardHeader } from '../../../../app/common/components/co
 import { Table } from '../../../../app/common/components/containers/Table'
 import { Button } from '../../../../app/common/components/elements/Button'
 import { EditableLabel } from '../../../../app/common/components/forms/EditableLabel'
-import { ItemSelect, SimpleSelect } from '../../../../app/common/components/forms/SimpleSelect'
+import { SimpleSelect } from '../../../../app/common/components/forms/SimpleSelect'
 import { useForm } from '../../../../app/common/hooks/UseForm'
 import { Notification } from '../../../../app/common/libs/toast'
 import { AdminLayout } from '../../../../app/modules/admin/layout'
-import { Etapa } from '../../../../app/modules/admin/models/etapa.model'
-import { PassoEtapa } from '../../../../app/modules/admin/models/passo-etapa.model'
+import { Etapa, Passo, PassoEtapa } from '../../../../app/modules/admin/models'
+import { PassoService, PassoEtapaService, EtapaService } from '../../../../app/modules/admin/services'
 import { PassoEtapaQuery } from '../../../../app/modules/admin/queries/passo-etapa.query'
-import { EtapaService } from '../../../../app/modules/admin/services/etapa.service'
-import { PassoEtapaService } from '../../../../app/modules/admin/services/passo-etapa.service'
-import { PassoService } from '../../../../app/modules/admin/services/passo.service'
 
 interface PassosEtapaProps {
   etapa: Etapa
-}
-
-const itemDefault = {
-  key: 0, text: '-- SELECIONE --', value: 0, disabled: true
 }
 
 const query = new PassoEtapaQuery();
@@ -33,22 +26,13 @@ const PassosEtapa = ({etapa}: PassosEtapaProps) => {
   
   const [etapaView,setEtapaView] = useState(etapa)
   const [numOrdem,setNumOrdem] = useState(1);
-  const [passos,setPassos] = useState<ItemSelect<number>[]>([])
+  const [passos,setPassos] = useState<Passo[]>([])
   
   useEffect(()=>{
-    passoService.getAll().then(data=>{
+    passoService.getAll()
+    .then(data=>{
       if (data){
-        const itens = data.map(item => {
-            return {
-              key: item.id,
-              text: item.nome,
-              value: item.id
-            } as ItemSelect<number>;
-          })
-        setPassos([
-          itemDefault,
-          ...itens
-          ])
+        setPassos(data)
       }
     })
   },[])
@@ -87,7 +71,7 @@ const PassosEtapa = ({etapa}: PassosEtapaProps) => {
       },
     },
     onSubmit: () => {
-      let passoEtapa = {...data, passo: {id: data.passoId, nome: ''}}
+      let passoEtapa = {...data, passo: {id: data.passoId, nome:''}}
       if (passoEtapa.id === 0){
         passoEtapa = {...passoEtapa, ordem: numOrdem+1}
         setNumOrdem(numOrdem+1)
@@ -165,10 +149,17 @@ const PassosEtapa = ({etapa}: PassosEtapaProps) => {
             <SimpleSelect
               label='Passo'
               value={data.passoId}
-              items={passos}
               onChange={handleChange('passoId')}
-              errors={errors.passoId ? [errors.passoId] : null}
-            />
+              errors={errors.passoId ? [errors.passoId] : null}>
+                <option value="0" disabled>--SELECIONE--</option>
+                {passos.map((passo,i) => {
+                  return (
+                    <option key={i} value={passo.id} >
+                      {passo.nome}
+                    </option>
+                  )
+                })}
+            </SimpleSelect>
             <div className="flex justify-end space-x-2">
               <Button type='button' onClick={cancelItem}>Cancel</Button>
               <Button type='submit' >Add</Button>

@@ -5,16 +5,15 @@ import { Card, CardBody, CardHeader } from '../../../../app/common/components/co
 import { Table } from '../../../../app/common/components/containers/Table'
 import { Button } from '../../../../app/common/components/elements/Button'
 import { EditableLabel } from '../../../../app/common/components/forms/EditableLabel'
-import { ItemSelect, SimpleSelect } from '../../../../app/common/components/forms/SimpleSelect'
+import { SimpleSelect } from '../../../../app/common/components/forms/SimpleSelect'
 import { useForm } from '../../../../app/common/hooks/UseForm'
 import { AdminLayout } from '../../../../app/modules/admin/layout'
-import { EtapaProcesso } from '../../../../app/modules/admin/models/etapa-processo.model'
-import { Processo } from '../../../../app/modules/admin/models/processo.model'
 import { EtapaProcessoQuery } from '../../../../app/modules/admin/queries/etapa-processo.query'
 import { EtapaProcessoService } from '../../../../app/modules/admin/services/etapa-processo.service'
 import { EtapaService } from '../../../../app/modules/admin/services/etapa.service'
 import { ProcessoService } from '../../../../app/modules/admin/services/processo.service'
 import { Notification } from '../../../../app/common/libs/toast'
+import { Processo, Etapa, EtapaProcesso, } from '../../../../app/modules/admin/models'
 
 interface EtapasProcessoProps {
   processo: Processo
@@ -25,10 +24,6 @@ const etapaService= new EtapaService();
 const service = new EtapaProcessoService();
 const processoService = new ProcessoService();
 
-const itemDefault = {
-  key: 0, text: '-- SELECIONE --', value: 0, disabled: true
-}
-
 const EtapasProcesso = ({processo}: EtapasProcessoProps) => {
 
   const newEtapaProcesso = {
@@ -37,26 +32,17 @@ const EtapasProcesso = ({processo}: EtapasProcessoProps) => {
 
   const [processoView,setProcessoView] = useState(processo)
   const [numOrdem,setNumOrdem] = useState(1);
-  const [etapas,setEtapas] = useState<ItemSelect<number>[]>([])
+  const [etapas,setEtapas] = useState<Etapa[]>([])
 
   const {isLoading, data: etapasProcesso, refetch, isFetching} = query.useQueryAll({query: `processo.id:${processo?.id}`});
   const {mutate: onCreateOrUpdate} = query.createOrUpdate();
   const {mutate: onDelete} = query.remove();
 
   useEffect(()=>{
-    etapaService.getAll().then(data=>{
+    etapaService.getAll()
+    .then(data=>{
       if (data){
-        const itens = data.map(item => {
-          return {
-            key: item.id,
-            text: item.nome,
-            value: item.id
-          } as ItemSelect<number>;
-        })
-        setEtapas([
-          itemDefault,
-          ...itens
-          ])
+        setEtapas(data)
       }
     })
   },[])
@@ -67,7 +53,7 @@ const EtapasProcesso = ({processo}: EtapasProcessoProps) => {
       :
       setNumOrdem(0);
 
-  },[etapasProcesso])
+  },[])
 
   const {
     handleSubmit,
@@ -166,10 +152,17 @@ const EtapasProcesso = ({processo}: EtapasProcessoProps) => {
             <SimpleSelect
               label='Etapa'
               value={data.etapaId}
-              items={etapas}
               onChange={handleChange('etapaId')}
-              errors={errors.etapaId ? [errors.etapaId] : null}
-            />
+              errors={errors.etapaId ? [errors.etapaId] : null}>
+                <option value='0' disabled>--SELECIONE--</option>
+                {etapas.map((etapa,i)=>{
+                  return (
+                    <option key={i} value={etapa.id}>
+                      {etapa.nome}
+                    </option>
+                  )
+                })}
+            </SimpleSelect>
             <div className="flex justify-end space-x-2">
               <Button type='button' onClick={cancelItem}>Cancel</Button>
               <Button type='submit' >Add</Button>

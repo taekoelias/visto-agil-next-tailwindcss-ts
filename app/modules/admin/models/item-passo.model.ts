@@ -2,7 +2,14 @@ import { BaseModel } from "../../../common/models/base.model";
 import { Passo } from "./passo.model";
 
 export enum TipoItem { 
-  INPUT="INPUT",TEXT="TEXT", IMAGE="IMAGE", VIDEO="VIDEO", LINK="LINK"
+  INPUT="INPUT", 
+  COMBO="COMBO", 
+  CHECKLIST="CHECKLIST", 
+  YES_NO="YES/NO",
+  TEXT="TEXT", 
+  IMAGE="IMAGE", 
+  VIDEO="VIDEO", 
+  LINK="LINK"
 }
 
 export interface ItemPasso extends BaseModel {

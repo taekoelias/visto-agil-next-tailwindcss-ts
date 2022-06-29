@@ -5,6 +5,7 @@ import { Card, CardBody, CardHeader } from '../../../../../app/common/components
 import { Modal } from '../../../../../app/common/components/containers/Modal';
 import { Button } from '../../../../../app/common/components/elements/Button';
 import { RedirectLink } from '../../../../../app/common/components/elements/RedirectLink';
+import { CheckList } from '../../../../../app/common/components/forms/CheckList';
 import { ItemLabel } from '../../../../../app/common/components/forms/ItemLabel';
 import { TextArea } from '../../../../../app/common/components/forms/TextArea';
 import { AdminLayout } from '../../../../../app/modules/admin/layout';
@@ -97,6 +98,15 @@ const PreenchimentoEtapa = ({processo, etapa, passos, itens, respostas} : Preenc
     setFormAtual(temp)
   };
 
+  const handleCheck = (
+    index: number
+  ) => (value: string[]) => {
+    let temp = [...formAtual];
+    temp[index].valor = value.join(';');
+    
+    setFormAtual(temp)
+  };
+
   return (
     <AdminLayout>
       <Card>
@@ -125,6 +135,18 @@ const PreenchimentoEtapa = ({processo, etapa, passos, itens, respostas} : Preenc
                           {resposta.item.conteudo}
                         </p>
                     </ItemLabel>
+                  )
+                }
+                if (resposta.item.tipo === TipoItem.CHECKLIST){
+                  const items = resposta.item.conteudo.split(';')
+                  const value = resposta.valor.split(';')
+                  return (
+                    <CheckList 
+                      onChange={handleCheck(index)}
+                      label={resposta.item.label}
+                      value={value}
+                      items={items}
+                      key={index}/>
                   )
                 }
                 if (resposta.item.tipo === TipoItem.INPUT){
